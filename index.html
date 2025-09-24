@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>RonitBot — Futuristic AI Assistant</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    :root {
+      --bg: #0a0f1c;
+      --bg2: #0e1426;
+      --panel: rgba(18, 26, 48, 0.8);
+      --card: rgba(255, 255, 255, 0.05);
+      --text: #e7ecff;
+      --muted: #9fb0d0;
+      --border: rgba(255, 255, 255, 0.1);
+      --accent1: #6aa9ff;
+      --accent2: #7c5cff;
+      --accent3: #00d4ff;
+      --glow: 0 0 20px rgba(106, 169, 255, 0.3);
+      --transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    }
+    *{box-sizing:border-box;margin:0;padding:0}
+    html,body{height:100%;font-family:'Inter','Segoe UI',system-ui,-apple-system,sans-serif;color:var(--text);background:radial-gradient(circle at 50% 0%,var(--bg2),var(--bg));overflow:hidden}
+    .app{position:absolute;inset:0;display:grid;grid-template-rows:70px 1fr auto;background:radial-gradient(circle at 20% 80%,rgba(124,92,255,0.1),transparent 70%)}
+    .top{display:flex;align-items:center;justify-content:space-between;padding:0 24px;border-bottom:1px solid var(--border);background:rgba(10,15,28,0.8);backdrop-filter:blur(20px);z-index:10;box-shadow:0 4px 30px rgba(0,0,0,0.2)}
+    .brand{display:flex;align-items:center;gap:12px}
+    .logo{width:40px;height:40px;border-radius:12px;display:grid;place-items:center;background:linear-gradient(135deg,var(--accent1),var(--accent2));box-shadow:var(--glow);position:relative;overflow:hidden}
+    .logo::after{content:'';position:absolute;top:-50%;left:-50%;width:200%;height:200%;background:linear-gradient(to bottom right,transparent,rgba(255,255,255,0.1),transparent);transform:rotate(45deg);animation:shine 3s infinite}
+    @keyframes shine{0%{transform:translateX(-100%) translateY(-100%) rotate(45deg)}100%{transform:translateX(100%) translateY(100%) rotate(45deg)}}
+    .brand-text h1{font-weight:700;font-size:1.4rem;background:linear-gradient(90deg,var(--accent1),var(--accent3));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+    .meta{display:flex;gap:12px;align-items:center}
+    .pill{font-size:12px;padding:6px 12px;border-radius:999px;background:var(--card);border:1px solid var(--border);color:var(--muted);display:flex;align-items:center;gap:6px}
+    .btn{min-width:48px;height:48px;border-radius:12px;border:1px solid var(--border);background:rgba(106,169,255,0.1);color:var(--text);font-weight:600;cursor:pointer;transition:var(--transition);display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden}
+    .btn:hover{background:rgba(106,169,255,0.2);border-color:var(--accent1);transform:translateY(-2px);box-shadow:var(--glow)}
+    .btn:disabled{opacity:.6;cursor:not-allowed;transform:none}
+    .stream{position:relative;overflow-y:auto;padding:24px clamp(16px,4vw,72px);scroll-behavior:smooth}
+    .stream::-webkit-scrollbar{width:6px}
+    .stream::-webkit-scrollbar-track{background:rgba(0,0,0,0.1);border-radius:10px}
+    .stream::-webkit-scrollbar-thumb{background:var(--accent1);border-radius:10px}
+    .msg{display:grid;grid-template-columns:50px 1fr;gap:16px;margin-bottom:24px;opacity:0;animation:fadeIn .5s ease forwards}
+    @keyframes fadeIn{to{opacity:1}}
+    .who{width:50px;height:50px;border-radius:14px;display:grid;place-items:center;background:var(--card);border:1px solid var(--border);font-size:1.2rem;position:relative}
+    .user .who{background:linear-gradient(135deg,rgba(106,169,255,.2),rgba(124,92,255,.15))}
+    .bubble{background:var(--card);border:1px solid var(--border);border-radius:18px;padding:18px 20px;line-height:1.6;white-space:pre-wrap;position:relative;transition:var(--transition)}
+    .bubble:hover{border-color:rgba(106,169,255,0.3)}
+    .msg.user{grid-template-columns:1fr 50px}
+    .msg.user .bubble{background:linear-gradient(135deg,rgba(106,169,255,.15),rgba(124,92,255,.1));border-color:rgba(106,169,255,.2)}
+    .typing-indicator{display:flex;gap:4px;padding:12px 0}
+    .typing-dot{width:8px;height:8px;border-radius:50%;background:var(--accent1);animation:typing 1.4s infinite ease-in-out}
+    .typing-dot:nth-child(1){animation-delay:-.32s}
+    .typing-dot:nth-child(2){animation-delay:-.16s}
+    @keyframes typing{0%,80%,100%{transform:scale(.8);opacity:.5}40%{transform:scale(1);opacity:1}}
+    .composer{border-top:1px solid var(--border);background:rgba(10,15,28,.7);backdrop-filter:blur(20px);padding:16px 0}
+    .actions{max-width:980px;margin:0 auto 12px;display:flex;gap:8px;flex-wrap:wrap;justify-content:space-between;align-items:center}
+    .chips{display:flex;gap:8px;flex-wrap:wrap}
+    .chip{font-size:12px;padding:8px 14px;border-radius:20px;background:var(--card);border:1px solid var(--border);color:var(--text);cursor:pointer;transition:var(--transition)}
+    .chip:hover{background:rgba(106,169,255,.1);border-color:var(--accent1);transform:translateY(-2px)}
+    .hint{max-width:980px;text-align:center;color:var(--muted);font-size:12px;margin:4px auto 6px}
+    .wrap{max-width:980px;margin:0 auto;padding:12px;display:flex;gap:12px;align-items:flex-end;border:1px solid var(--border);border-radius:20px;background:var(--card);transition:var(--transition)}
+    .wrap:focus-within{border-color:var(--accent1);box-shadow:var(--glow)}
+    .ta{flex:1;resize:none;background:transparent;color:var(--text);border:none;outline:none;padding:8px 12px;min-height:52px;max-height:200px;font-size:1rem;line-height:1.6;font-family:inherit}
+    .ta::placeholder{color:var(--muted)}
+    .message-actions{position:absolute;top:8px;right:12px;display:flex;gap:6px;opacity:0;transition:var(--transition)}
+    .bubble:hover .message-actions{opacity:1}
+    .action-btn{width:28px;height:28px;border-radius:6px;background:rgba(0,0,0,.3);border:1px solid var(--border);color:var(--text);display:grid;place-items:center;font-size:12px;cursor:pointer;transition:var(--transition)}
+    .action-btn:hover{background:rgba(106,169,255,.2);border-color:var(--accent1)}
+    .welcome{text-align:center;max-width:600px;margin:40px auto;padding:40px;background:var(--card);border:1px solid var(--border);border-radius:20px}
+    .welcome h2{font-size:1.8rem;margin-bottom:16px;background:linear-gradient(90deg,var(--accent1),var(--accent3));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+    .welcome p{color:var(--muted);margin-bottom:24px}
+    .welcome-chips{display:flex;flex-wrap:wrap;gap:12px;justify-content:center}
+    .welcome-chip{padding:12px 20px;border-radius:20px;background:rgba(106,169,255,.1);border:1px solid rgba(106,169,255,.2);cursor:pointer;transition:var(--transition)}
+    .welcome-chip:hover{background:rgba(106,169,255,.2);transform:translateY(-2px)}
+    @media (max-width:768px){
+      .top{padding:0 16px}
+      .stream{padding:16px}
+      .msg{grid-template-columns:40px 1fr;gap:12px}
+      .msg.user{grid-template-columns:1fr 40px}
+      .who{width:40px;height:40px;font-size:1rem}
+      .bubble{padding:14px 16px}
+      .actions{flex-direction:column;gap:12px}
+      .chips{justify-content:center}
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <header class="top">
+      <div class="brand">
+        <div class="logo"><i class="fas fa-robot"></i></div>
+        <div class="brand-text">
+          <h1>RonitBot</h1>
+          <div id="status" style="font-size:12px;color:#9fb0d0">Checking model…</div>
+        </div>
+      </div>
+      <div class="meta">
+        <span class="pill"><i class="fas fa-microchip"></i> Local (Ollama)</span>
+        <button id="plan" class="btn" title="Generate CarePlan.md"><i class="fas fa-file-medical"></i></button>
+        <button id="clear" class="btn" title="Clear chat"><i class="fas fa-broom"></i></button>
+        <button id="theme" class="btn" title="Toggle theme"><i class="fas fa-palette"></i></button>
+      </div>
+    </header>
+
+    <main id="stream" class="stream" aria-live="polite">
+      <div class="welcome" id="welcome">
+        <h2>Welcome to RonitBot</h2>
+        <p>Warm, human relationship support. I’ll start with a couple basics (name/age/gender/city/profession) and then we’ll dive in together.</p>
+        <div class="welcome-chips">
+          <div class="welcome-chip" data-insert="We've been arguing lately about the same thing.">Arguing pattern</div>
+          <div class="welcome-chip" data-insert="I want to set a boundary but I'm nervous.">Set a boundary</div>
+          <div class="welcome-chip" data-insert="We're long-distance and it's straining us.">Long-distance</div>
+          <div class="welcome-chip" data-insert="Trust was broken and I'm unsure how to repair it.">Trust/repair</div>
+        </div>
+      </div>
+    </main>
+
+    <footer class="composer">
+      <div class="actions">
+        <div class="chips">
+          <span class="chip" data-insert="We've been arguing lately about the same thing.">Arguing pattern</span>
+          <span class="chip" data-insert="I want to set a boundary but I'm nervous.">Set a boundary</span>
+          <span class="chip" data-insert="We're long-distance and it's straining us.">Long-distance</span>
+          <span class="chip" data-insert="Trust was broken and I'm unsure how to repair it.">Trust/repair</span>
+          <span class="chip" data-insert="Here's a short example of our texts: …">Share example</span>
+        </div>
+        <span class="hint">Enter to send • Shift+Enter for newline • “CarePlan” button anytime</span>
+      </div>
+      <div class="wrap">
+        <textarea id="ta" class="ta" placeholder="Hi, I’m Ronit. We’ll keep it light and helpful—what’s on your mind today?"></textarea>
+        <button id="send" class="btn"><i class="fas fa-paper-plane"></i></button>
+      </div>
+    </footer>
+  </div>
+
+  <script>
+    const stream = document.getElementById('stream');
+    const ta = document.getElementById('ta');
+    const sendBtn = document.getElementById('send');
+    const clearBtn = document.getElementById('clear');
+    const planBtn = document.getElementById('plan');
+    const themeBtn = document.getElementById('theme');
+    const statusEl = document.getElementById('status');
+    const chips = document.querySelectorAll('.chip');
+    const welcomeChips = document.querySelectorAll('.welcome-chip');
+    const welcome = document.getElementById('welcome');
+
+    // one session per tab
+    const SID = 'ui-' + Math.random().toString(36).slice(2,10);
+    let isDarkTheme = true;
+
+    // ----- UI helpers -----
+    function row(role, text){
+      const d = document.createElement('div');
+      d.className = `msg ${role}`;
+      if (welcome && welcome.style.display !== 'none') welcome.style.display = 'none';
+
+      const who = document.createElement('div');
+      who.className = 'who';
+      who.innerHTML = role === 'user' ? '<i class="fas fa-user"></i>' : '<i class="fas fa-robot"></i>';
+
+      const bubbleWrap = document.createElement('div');
+      bubbleWrap.style.position = 'relative';
+
+      const bubble = document.createElement('div');
+      bubble.className = 'bubble';
+      bubble.textContent = text || '';
+
+      const actions = document.createElement('div');
+      actions.className = 'message-actions';
+      actions.innerHTML = `
+        <button class="action-btn copy-btn" title="Copy"><i class="fas fa-copy"></i></button>
+        <button class="action-btn feedback-btn" title="Thanks!"><i class="fas fa-thumbs-up"></i></button>
+      `;
+
+      bubbleWrap.appendChild(bubble);
+      bubbleWrap.appendChild(actions);
+
+      if (role === 'user') { d.appendChild(bubbleWrap); d.appendChild(who); }
+      else { d.appendChild(who); d.appendChild(bubbleWrap); }
+
+      stream.appendChild(d);
+      stream.scrollTop = stream.scrollHeight;
+
+      const copyBtn = d.querySelector('.copy-btn');
+      copyBtn.addEventListener('click', () => {
+        navigator.clipboard.writeText(text || '').then(() => {
+          copyBtn.innerHTML = '<i class="fas fa-check"></i>';
+          setTimeout(()=>copyBtn.innerHTML = '<i class="fas fa-copy"></i>', 1500);
+        });
+      });
+
+      const feedbackBtn = d.querySelector('.feedback-btn');
+      feedbackBtn.addEventListener('click', () => {
+        feedbackBtn.style.color = 'var(--accent1)';
+        setTimeout(()=>feedbackBtn.style.color = '', 1200);
+      });
+
+      return bubble;
+    }
+
+    function humanType(el, full){
+      el.textContent = '';
+      const chars = [...(full || '')];
+      let i = 0, stop = false;
+
+      const stopBtn = document.createElement('button');
+      stopBtn.className = 'action-btn';
+      stopBtn.innerHTML = '<i class="fas fa-stop"></i>';
+      stopBtn.style.position = 'absolute';
+      stopBtn.style.top = '8px';
+      stopBtn.style.right = '12px';
+      stopBtn.title = 'Stop typing';
+      el.parentElement.appendChild(stopBtn);
+      stopBtn.addEventListener('click', ()=>{ stop = true; stopBtn.remove(); });
+
+      (function tick(){
+        if (stop || i >= chars.length){ stopBtn.remove(); return; }
+        const burst = 1 + Math.floor(Math.random()*3);
+        el.textContent += chars.slice(i, i+burst).join('');
+        i += burst;
+        stream.scrollTop = stream.scrollHeight;
+        const cps = 14 + (Math.random()*8 - 4);
+        setTimeout(tick, 1000 / cps);
+      })();
+    }
+
+    function showTyping(){
+      const d = document.createElement('div');
+      d.className = 'msg bot';
+      const who = document.createElement('div'); who.className = 'who'; who.innerHTML = '<i class="fas fa-robot"></i>';
+      const bubble = document.createElement('div'); bubble.className = 'bubble';
+      const dots = document.createElement('div'); dots.className = 'typing-indicator';
+      for(let i=0;i<3;i++){ const dot = document.createElement('div'); dot.className='typing-dot'; dots.appendChild(dot); }
+      bubble.appendChild(dots); d.appendChild(who); d.appendChild(bubble);
+      stream.appendChild(d); stream.scrollTop = stream.scrollHeight;
+      return {container:d};
+    }
+    function removeTyping(obj){ if(obj && obj.container) obj.container.remove(); }
+
+    function disableUI(disabled){
+      sendBtn.disabled = disabled; planBtn.disabled = disabled; ta.disabled = disabled;
+      chips.forEach(ch=>ch.style.pointerEvents = disabled ? 'none' : 'auto');
+    }
+
+    function autoResize(){ ta.style.height='52px'; ta.style.height=Math.min(200, ta.scrollHeight)+'px'; }
+
+    function toggleTheme(){
+      isDarkTheme = !isDarkTheme;
+      if (isDarkTheme){
+        document.documentElement.style.setProperty('--bg','#0a0f1c');
+        document.documentElement.style.setProperty('--bg2','#0e1426');
+        document.documentElement.style.setProperty('--text','#e7ecff');
+        themeBtn.innerHTML = '<i class="fas fa-palette"></i>';
+      } else {
+        document.documentElement.style.setProperty('--bg','#f0f4ff');
+        document.documentElement.style.setProperty('--bg2','#e6edff');
+        document.documentElement.style.setProperty('--text','#1a1a2e');
+        themeBtn.innerHTML = '<i class="fas fa-moon"></i>';
+      }
+    }
+
+    // ----- API calls -----
+    async function health(){
+      try{
+        const r = await fetch('/api/health');
+        if(!r.ok) throw new Error('bad status');
+        const data = await r.json();
+        statusEl.textContent = data && data.ok ? 'Model: Online' : 'Model: Offline';
+      }catch{
+        statusEl.textContent = 'Model: Offline';
+      }
+    }
+
+    async function apiChat(message){
+      const r = await fetch('/api/chat', {
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({ session_id: SID, message })
+      });
+      if(!r.ok){
+        const text = await r.text().catch(()=> '');
+        throw new Error(text || ('HTTP '+r.status));
+      }
+      return r.json();
+    }
+
+    async function firstTurn(){
+      // ask server for the opener so server controls first prompt
+      try{
+        const typing = showTyping();
+        const data = await apiChat('hi');
+        removeTyping(typing);
+        const botBubble = row('bot','');
+        humanType(botBubble, data.reply || "Hi—I'm Ronit. What’s your first name?");
+      }catch(e){
+        row('bot', '(offline) Could not reach server.');
+      }
+    }
+
+    // ----- send -----
+    async function send(forcePlan=false){
+      const v = ta.value.trim();
+      if (!v && !forcePlan) return;
+
+      disableUI(true);
+      if (!forcePlan){
+        ta.value = ''; autoResize();
+        row('user', v);
+      }
+
+      const typing = showTyping();
+      try{
+        const payload = forcePlan ? 'Please generate CarePlan.md now based on our conversation.' : v;
+        const data = await apiChat(payload);
+        removeTyping(typing);
+
+        const reply = (data && data.reply) || '(no reply)';
+        const botBubble = row('bot','');
+        humanType(botBubble, reply);
+      }catch(e){
+        removeTyping(typing);
+        row('bot', '(server error) ' + (e.message || 'could not reach server'));
+      }finally{
+        disableUI(false);
+        ta.focus();
+      }
+    }
+
+    // ----- events -----
+    ta.addEventListener('keydown', e => {
+      if (e.key === 'Enter' && !e.shiftKey){ e.preventDefault(); send(false); }
+    });
+    ta.addEventListener('input', autoResize);
+    sendBtn.addEventListener('click', ()=>send(false));
+    planBtn.addEventListener('click', ()=>send(true));
+    clearBtn.addEventListener('click', ()=>{
+      stream.innerHTML = '';
+      if (welcome) welcome.style.display = 'block';
+      firstTurn();
+    });
+    themeBtn.addEventListener('click', toggleTheme);
+
+    chips.forEach(chip=>{
+      chip.addEventListener('click', ()=>{
+        ta.value = (ta.value ? ta.value + ' ' : '') + chip.dataset.insert;
+        ta.focus(); autoResize();
+      });
+    });
+    welcomeChips.forEach(chip=>{
+      chip.addEventListener('click', ()=>{
+        ta.value = chip.dataset.insert;
+        ta.focus(); autoResize();
+        if (welcome) welcome.style.display = 'none';
+      });
+    });
+
+    // ----- init -----
+    health();
+    firstTurn(); // get the server’s natural opener
+  </script>
+</body>
+</html>
